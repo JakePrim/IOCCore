@@ -1,12 +1,16 @@
 package com.prim.ioccore;
 
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 import com.prim.lib_ioc.ContentView;
 import com.prim.lib_ioc.OnClick;
+import com.prim.lib_ioc.OnLongClick;
 import com.prim.lib_ioc.ViewInject;
 
 import org.w3c.dom.Text;
@@ -29,10 +33,17 @@ public class TestActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         textView.setText("Hello World 123");
+        textView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return false;
+            }
+        });
     }
 
-    @OnClick(value = {R.id.text1})
-    public void test() {
-
+    @OnLongClick(value = {R.id.text1})
+    public boolean test(View view) {
+        Toast.makeText(this, "注入长按事件完成", Toast.LENGTH_LONG).show();
+        return false;
     }
 }

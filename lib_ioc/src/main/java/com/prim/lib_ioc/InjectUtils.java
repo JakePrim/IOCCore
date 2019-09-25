@@ -1,10 +1,12 @@
 package com.prim.lib_ioc;
 
+import android.util.Log;
 import android.view.View;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
 
 /**
@@ -30,6 +32,8 @@ public class InjectUtils {
         injectView(context);
         injectClick(context);
     }
+
+    private static final String TAG = "InjectUtils";
 
     /**
      * 注入事件
@@ -63,8 +67,10 @@ public class InjectUtils {
                         for (int viewId : viewIds) {
                             View view;
                             if (viewMaps.containsKey(viewId)) {
+                                Log.e(TAG, "injectClick: 仓库中存在此view，直接从仓库中获取");
                                 view = viewMaps.get(viewId);
                             } else {
+                                Log.e(TAG, "injectClick: 仓库中不存在此view，通过反射获取，存储到仓库中");
                                 //获取到view
                                 Method findViewByIdMethod = aClass.getMethod("findViewById", int.class);
                                 view = (View) findViewByIdMethod.invoke(context, viewId);
@@ -75,7 +81,12 @@ public class InjectUtils {
                             //注入view事件
                             //获取事件的方法
                             Method listenerMethod = view.getClass().getMethod(listenerSetter, listenerType);
-
+                            //执行事件方法 method
+                            ListenerInvocationHandler invocationHandler =
+                                    new ListenerInvocationHandler(context, method, callbackMethod);
+                            //通过动态代理实现listenerType接口类
+                            Object proProxy = Proxy.newProxyInstance(listenerType.getClassLoader(), new Class[]{listenerType}, invocationHandler);
+                            listenerMethod.invoke(view, proProxy);
                         }
                     }
                 } catch (Exception e) {
